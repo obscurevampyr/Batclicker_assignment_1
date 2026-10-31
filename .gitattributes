@@ -1,2 +1,538 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bat Clicker Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e2d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            position: relative;
+        }
+
+        /* Autoclicker button style */
+        .autoclicker-panel {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: linear-gradient(135deg, #751016, #4a080c);
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            z-index: 100;
+            border: 1px solid #a31c26;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .autoclicker-panel:hover {
+            background: linear-gradient(135deg, #8c141c, #5c0a0f);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Left stats panel */
+        .left-panel {
+            width: 360px;
+            background-color: #2b1418;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10;
+            border-right: 2px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .banner-title {
+            background: linear-gradient(135deg, #6e0f15, #45090d);
+            color: #ffffff;
+            text-align: center;
+            padding: 16px;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: 1.5px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-box {
+            background-color: #1f0d10;
+            border-radius: 10px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .collected-badge {
+            background-color: #3b1115;
+            color: #ffb8c0;
+            text-align: center;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            border-left: 4px solid #b81d28;
+        }
+
+        .stats-header {
+            color: #d1d5db;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 2px;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2b1418;
+            padding: 10px 14px;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background-color 0.2s ease;
+        }
+
+        .stat-row:hover {
+            background-color: #35181d;
+        }
+
+        .money-row {
+            background: linear-gradient(135deg, #3a2a0d, #241905);
+            border-left: 4px solid #f1c40f;
+            color: #f39c12;
+            font-size: 15px;
+            font-weight: 700;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .upgrade-btn {
+            background-color: #751016;
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .upgrade-btn:hover {
+            background-color: #9c1720;
+            transform: scale(1.03);
+        }
+
+        .upgrade-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Right game area */
+        .right-panel {
+            flex-grow: 1;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(to bottom, #14141f, #2d2136);
+            overflow: hidden;
+        }
+
+        .moon {
+            position: absolute;
+            top: 40px;
+            right: 80px;
+            width: 70px;
+            height: 70px;
+            background-color: #f5f6fa;
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(245, 246, 250, 0.4);
+        }
+
+        .bg-hill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            background-color: #1d1824;
+            border-top-left-radius: 50% 50px;
+            border-top-right-radius: 50% 50px;
+            z-index: 1;
+        }
+
+        .cave-area {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 500px;
+            height: 300px;
+            z-index: 5;
+        }
+
+        .rock-hill {
+            position: absolute;
+            bottom: 0;
+            width: 480px;
+            height: 280px;
+            background-color: #4a4a52;
+            border-top-left-radius: 240px;
+            border-top-right-radius: 240px;
+            left: 10px;
+        }
+
+        .cave-entrance {
+            position: absolute;
+            bottom: 0;
+            left: 200px;
+            width: 100px;
+            height: 220px;
+            background-color: #0b080a;
+            border-top-left-radius: 50px;
+            border-top-right-radius: 50px;
+        }
+
+        .spawn-btn {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #751016, #4a080c);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-radius: 25px;
+            cursor: pointer;
+            z-index: 30;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .spawn-btn:hover {
+            background: linear-gradient(135deg, #8c141c, #5c0a0f);
+            transform: translateX(-50%) translateY(-2px);
+        }
+
+        /* Bat element & Flapping animations */
+        .bat {
+            position: absolute;
+            width: 70px;
+            height: 50px;
+            cursor: pointer;
+            z-index: 25;
+        }
+
+        .wing-left {
+            transform-origin: 60px 40px;
+            animation: flapLeft 0.5s infinite alternate ease-in-out;
+        }
+
+        .wing-right {
+            transform-origin: 60px 40px;
+            animation: flapRight 0.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes flapLeft {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(20deg) scaleX(0.75); }
+        }
+
+        @keyframes flapRight {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-20deg) scaleX(0.75); }
+        }
+
+        .health-bar-container {
+            position: absolute;
+            top: -10px;
+            left: 13px;
+            width: 44px;
+            height: 6px;
+            background-color: #222;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .health-bar-fill {
+            height: 100%;
+            background-color: #2ecc71;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Autoclicker Button -->
+        <div class="autoclicker-panel" id="autoclicker-badge" onclick="buyAutoclicker()">
+            AUTOCLICKER (100g)
+        </div>
+
+        <!-- Left Stats Panel -->
+        <div class="left-panel">
+            <div class="banner-title">BAT CLICKER</div>
+            
+            <div class="stats-box">
+                <div class="collected-badge" id="lbl-collected">Bats collected: 0</div>
+                <div class="stats-header">Upgrades & Stats</div>
+                
+                <div class="stat-row">
+                    <span id="lbl-power">POWER: 1</span>
+                    <button class="upgrade-btn" onclick="upgradePower()">UPGRADE (15g)</button>
+                </div>
+                
+                <div class="stat-row">
+                    <span id="lbl-speed">SPEED: 1</span>
+                    <button class="upgrade-btn" onclick="upgradeSpeed()">UPGRADE (20g)</button>
+                </div>
+
+                <div class="stat-row">
+                    <span id="lbl-gold-chance">GOLD CHANCE: 5%</span>
+                    <button class="upgrade-btn" onclick="upgradeGoldChance()">UPGRADE (50g)</button>
+                </div>
+                
+                <div class="stat-row money-row">
+                    <span id="lbl-money">MONEY: 0g</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Game Area -->
+        <div class="right-panel" id="right-panel">
+            <div class="moon"></div>
+            <div class="bg-hill"></div>
+
+            <div class="cave-area" id="cave-area">
+                <div class="rock-hill"></div>
+                <div class="cave-entrance"></div>
+            </div>
+
+            <button class="spawn-btn" onclick="spawnBat()">CLICK FOR MORE BATS</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        var money = 0;
+        var batsCollected = 0;
+        var power = 1;
+        var speedLevel = 1;
+        var goldChance = 5;
+        
+        var powerCost = 15;
+        var speedCost = 20;
+        var goldChanceCost = 50;
+
+        var autoclickerLevel = 0;
+        var autoclickerCost = 100;
+
+        var activeBats = [];
+        var maxBatsAllowed = 12;
+
+        // Get elements
+        var lblCollected = document.getElementById('lbl-collected');
+        var lblPower = document.getElementById('lbl-power');
+        var lblSpeed = document.getElementById('lbl-speed');
+        var lblGoldChance = document.getElementById('lbl-gold-chance');
+        var lblMoney = document.getElementById('lbl-money');
+        var autoclickerBadge = document.getElementById('autoclicker-badge');
+        var rightPanel = document.getElementById('right-panel');
+
+        // Update the UI text
+        function updateScreen() {
+            lblCollected.innerHTML = "Bats collected: " + batsCollected;
+            lblPower.innerHTML = "POWER: " + power;
+            lblSpeed.innerHTML = "SPEED: " + speedLevel;
+            lblGoldChance.innerHTML = "GOLD CHANCE: " + goldChance + "%";
+            lblMoney.innerHTML = "MONEY: " + money + "g";
+        }
+
+        // Upgrade functions
+        function upgradePower() {
+            if (money >= powerCost) {
+                money = money - powerCost;
+                power++;
+                powerCost = powerCost + 10;
+                document.querySelectorAll('.upgrade-btn')[0].innerHTML = "UPGRADE (" + powerCost + "g)";
+                updateScreen();
+            }
+        }
+
+        function upgradeSpeed() {
+            if (money >= speedCost) {
+                money = money - speedCost;
+                speedLevel++;
+                speedCost = speedCost + 15;
+                document.querySelectorAll('.upgrade-btn')[1].innerHTML = "UPGRADE (" + speedCost + "g)";
+                updateScreen();
+            }
+        }
+
+        function upgradeGoldChance() {
+            if (money >= goldChanceCost && goldChance < 100) {
+                money = money - goldChanceCost;
+                goldChance = goldChance + 5;
+                goldChanceCost = goldChanceCost + 25;
+                document.querySelectorAll('.upgrade-btn')[2].innerHTML = "UPGRADE (" + goldChanceCost + "g)";
+                updateScreen();
+            }
+        }
+
+        function buyAutoclicker() {
+            if (money >= autoclickerCost) {
+                money = money - autoclickerCost;
+                autoclickerLevel++;
+                autoclickerCost = autoclickerCost + 50;
+                autoclickerBadge.innerHTML = "AUTOCLICKER Lvl " + autoclickerLevel + " (" + autoclickerCost + "g)";
+                updateScreen();
+            }
+        }
+
+        // Spawn a bat with progressive difficulty scaling
+        function spawnBat() {
+            if (activeBats.length >= maxBatsAllowed) {
+                return;
+            }
+
+            var batDiv = document.createElement('div');
+            batDiv.className = 'bat';
+            
+            var startX = 350 + Math.random() * 200;
+            var startY = 300 + Math.random() * 100;
+            
+            var vx = (Math.random() - 0.5) * 2;
+            var vy = -1 - Math.random() * 1.5;
+
+            var isGold = Math.random() * 100 < goldChance;
+
+            // Difficulty multiplier increases as you collect more bats
+            var progressionMultiplier = 1 + (batsCollected * 0.15);
+            
+            var baseReward = Math.floor((3 + Math.random() * 4) * progressionMultiplier);
+            var reward = isGold ? baseReward * 10 : baseReward;
+            
+            var baseHp = Math.floor((5 + Math.random() * 5) * progressionMultiplier);
+            var hp = isGold ? baseHp * 3 : baseHp;
+            var currentHp = hp;
+
+            var bodyColor = isGold ? '#c29b0c' : '#181820';
+            var wingColor = isGold ? '#e6b800' : '#0d0d12';
+            var eyeColor = isGold ? '#ffffff' : '#ff1a1a';
+
+            batDiv.innerHTML = `
+                <div class="health-bar-container"><div class="health-bar-fill" style="background-color: ${isGold ? '#f1c40f' : '#2ecc71'};"></div></div>
+                <svg viewBox="0 0 120 80" width="70" height="50">
+                    <path d="M60,40 Q25,10 2,28 Q20,55 42,45 Q52,65 60,50 Z" fill="${wingColor}" class="wing-left"/>
+                    <path d="M60,40 Q95,10 118,28 Q100,55 78,45 Q68,65 60,50 Z" fill="${wingColor}" class="wing-right"/>
+                    <ellipse cx="60" cy="42" rx="11" ry="16" fill="${bodyColor}"/>
+                    <polygon points="52,30 46,13 55,26" fill="${bodyColor}"/>
+                    <polygon points="68,30 74,13 65,26" fill="${bodyColor}"/>
+                    <circle cx="60" cy="28" r="9" fill="${bodyColor}"/>
+                    <circle cx="57" cy="27" r="1.8" fill="${eyeColor}"/>
+                    <circle cx="63" cy="27" r="1.8" fill="${eyeColor}"/>
+                </svg>
+            `;
+
+            batDiv.onclick = function(event) {
+                event.stopPropagation();
+                var damage = power * speedLevel;
+                currentHp = currentHp - damage;
+                
+                var fillBar = batDiv.querySelector('.health-bar-fill');
+                var percentage = (currentHp / hp) * 100;
+                if (percentage < 0) percentage = 0;
+                fillBar.style.width = percentage + '%';
+
+                if (currentHp <= 0) {
+                    batDiv.remove();
+                    var index = activeBats.indexOf(batObj);
+                    if (index > -1) {
+                        activeBats.splice(index, 1);
+                    }
+                    batsCollected++;
+                    money = money + reward;
+                    updateScreen();
+                }
+            };
+
+            rightPanel.appendChild(batDiv);
+
+            var batObj = {
+                element: batDiv,
+                x: startX,
+                y: startY,
+                vx: vx,
+                vy: vy
+            };
+
+            activeBats.push(batObj);
+        }
+
+        // Autoclicker loop
+        setInterval(function() {
+            if (autoclickerLevel > 0 && activeBats.length > 0) {
+                var randomBatObj = activeBats[Math.floor(Math.random() * activeBats.length)];
+                randomBatObj.element.click();
+            }
+        }, 1000);
+
+        // Main game loop for movement
+        function gameLoop() {
+            var maxX = rightPanel.clientWidth - 70;
+            var maxY = rightPanel.clientHeight - 70;
+
+            for (var i = 0; i < activeBats.length; i++) {
+                var b = activeBats[i];
+                b.x = b.x + b.vx;
+                b.y = b.y + b.vy;
+
+                if (b.x <= 10 || b.x >= maxX) {
+                    b.vx = b.vx * -1;
+                }
+                if (b.y <= 10 || b.y >= maxY) {
+                    b.vy = b.vy * -1;
+                }
+
+                b.element.style.left = b.x + 'px';
+                b.element.style.top = b.y + 'px';
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
