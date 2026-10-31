@@ -508,7 +508,7 @@
             }
         }, 1000);
 
-        // Main game loop for movement
+        // Main game loop for movemen
         function gameLoop() {
             var maxX = rightPanel.clientWidth - 70;
             var maxY = rightPanel.clientHeight - 70;
